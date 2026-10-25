@@ -1,6 +1,6 @@
 import java.util.List;
 
-/** 演示工具类。 */
+/** 演示工具类（cra 评审靶场）。 */
 public class ListUtil {
 
   /** 返回列表最后一个元素。 */
