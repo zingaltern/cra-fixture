@@ -20,6 +20,6 @@ public class ListUtil {
     // drift line 9
     // drift line 10
     System.out.println(last(List.of(1, 2, 3, 4)));
-    System.out.println(last(List.of()));
+    System.out.println(last(new java.util.ArrayList<>()));
   }
 }
