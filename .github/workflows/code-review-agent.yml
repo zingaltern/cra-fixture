@@ -1,0 +1,54 @@
+# cra 评审 fixture 形态（05§4 的靶场版）：CLI 从 zingaltern/code-review-agent（公开仓库）源码构建，
+# ~/.m2 走 actions/cache——首跑慢（填缓存），热跑构建约 1 分钟。
+name: code-review-agent
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+permissions:
+  contents: read
+  pull-requests: write
+concurrency:
+  group: review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: cra-m2-${{ runner.os }}-v1
+      - name: Checkout cra source
+        uses: actions/checkout@v4
+        with: { repository: zingaltern/code-review-agent, ref: main, path: cra }
+      - name: Build cra CLI
+        run: mvn -B -ntp -f cra/pom.xml -pl cra-runner-cli -am package -DskipTests
+      - name: Run cra review
+        run: |
+          java -jar cra/cra-runner-cli/target/cra-runner-cli-0.1.0.jar review \
+            --repo "$GITHUB_REPOSITORY" \
+            --pr "$PR_NUMBER" \
+            --base "$BASE_SHA" \
+            --head "$HEAD_SHA" \
+            --depth standard \
+            --token "$GITHUB_TOKEN"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CRA_LLM_API_KEY: ${{ secrets.CRA_LLM_API_KEY }}
+          CRA_LLM_BASE_URL: ${{ vars.CRA_LLM_BASE_URL }}
+          CRA_LLM_MODEL: ${{ vars.CRA_LLM_MODEL }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      - name: persist trace
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cra-trace-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+          path: .cra/runs/
+          retention-days: 90
