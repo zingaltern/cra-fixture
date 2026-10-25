@@ -10,5 +10,6 @@ public class ListUtil {
 
   public static void main(String[] args) {
     System.out.println(last(List.of(1, 2, 3)));
+    System.out.println(last(List.of()));
   }
 }
