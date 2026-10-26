@@ -25,7 +25,7 @@ jobs:
           key: cra-m2-${{ runner.os }}-v1
       - name: Checkout cra source
         uses: actions/checkout@v4
-        with: { repository: zingaltern/code-review-agent, ref: main, path: cra }
+        with: { repository: zingaltern/code-review-agent, ref: feat/m4-signoff, path: cra }
       - name: Build cra CLI
         run: mvn -B -ntp -f cra/pom.xml -pl cra-runner-cli -am package -DskipTests
       - name: Run cra review

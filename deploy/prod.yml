@@ -1,0 +1,5 @@
+# 高风险靶场：难恢复的关键配置（M4a 分级规则 critical-config-path）
+environment: production
+rollout:
+  strategy: blue-green
+  manual_approval: required
